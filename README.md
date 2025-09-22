@@ -5,10 +5,15 @@ A comprehensive machine learning pipeline for predicting BMI changes in patients
 This project implements a modular ML pipeline to predict significant BMI increases (>5%) in patients receiving olanzapine treatment. The pipeline includes:
 
 -Data preprocessing and feature engineering
+
 -Multiple ML models (Logistic Regression, Random Forest, Decision Trees, Gradient Boosting, XGBoost)
+
 -Comprehensive evaluation with SHAP explainability
+
 -Automated visualization and reporting
+
 -Configurable experiments via YAML files
+
 
 📁 Repository Structure
 
