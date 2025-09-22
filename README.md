@@ -22,7 +22,6 @@ Prerequisites
 
 Clone the repository:
 git clone https://github.com/your-username/bmipred.git
-cd bmipred
 
 Running a Machine Learning Training Experiment:
 Configure the ML pipeline in train_evaluate_models.yaml and run the corresponding script 22_train_evaluate_models.py.
