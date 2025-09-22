@@ -1,0 +1,31 @@
+# calculate_bmi_features.yaml
+
+# Inputs
+health_assessment_path: data/interim/healthAssessment_cleaned.parquet
+demographics_path: data/interim/patients_cleaned.parquet
+
+# Output
+output_file: data/processed/bmi_demographics.parquet
+
+# Filtering parameters
+min_age: 18
+max_age: 120
+min_height_cm: 100
+max_height_cm: 220
+lower_quantile: 0.001
+upper_quantile: 0.999
+min_bmi_measurements: 1
+
+# Column name mappings
+patientid_col: PatientDurableKey
+bmi_instant_col: CreateInstant
+birth_date_col: BirthDate
+heightcm_col: HeightInCentimeters
+weightg_col: WeightInGrams
+smoking_status_col: SmokingStatus
+sex_col: Sex
+marital_status_col: MaritalStatus
+death_date_col: DeathDate
+
+
+

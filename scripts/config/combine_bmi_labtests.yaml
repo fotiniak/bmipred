@@ -1,0 +1,16 @@
+# combine_bmi_labtests.yaml
+
+# Inputs
+bmi_path: data/processed/bmi_medication_diagnosis.parquet
+lab_tests_path: data/interim/labComponentResults_cleaned.parquet
+
+# Output
+output_file: data/processed/bmi_medication_diagnosis_labtests.parquet
+
+# Column name mappings
+patientid_col: PatientDurableKey
+bmi_instant_col: CreateInstant
+collection_instant_col: CollectionInstant
+labanalysis_col: Labanalysis
+value_col: Value
+flag_col: Flag
