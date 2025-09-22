@@ -1,0 +1,14 @@
+# combine_bmi_hospitalization.yaml
+
+# Inputs
+bmi_path: data/processed/bmi_medication_diagnosis_labtests_hospitalization.parquet
+family_history_path: data/interim/familyHistory_cleaned.parquet
+
+# Outputs
+output_file: data/processed/bmi_medication_diagnosis_labtests_hospitalization_familyHistory.parquet
+
+# Column name mappings
+patientid_col: PatientDurableKey
+bmi_instant_col: CreateInstant
+relation_col: Relation
+medical_cond_col: MedicalCondition

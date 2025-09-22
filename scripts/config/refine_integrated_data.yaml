@@ -1,0 +1,14 @@
+# refine_integrated_data.yaml
+
+# Input
+input_file: data/processed/bmi_medication_diagnosis_labtests_hospitalization_familyHistory.parquet
+
+# Output
+output_file: data/processed/integrated_data.parquet
+
+# Column name mappings
+patientid_col: PatientDurableKey
+bmi_instant_col: CreateInstant
+labanalysis_col: Labanalysis
+
+

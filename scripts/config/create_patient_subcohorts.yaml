@@ -1,0 +1,35 @@
+# Inputs
+integrated_df_path: data/processed/integrated_data.parquet
+medication_path: data/interim/medication_calculated_features.parquet
+olanzapine_info_path: data/processed/olanzapine_info.parquet
+
+# Outputs (default ≥5% target)
+out_wot_olanzapine_first: data/processed/cohort_wot_olanzapine_first.parquet
+out_wot_olanzapine_last:  data/processed/cohort_wot_olanzapine_last.parquet
+out_on_olanzapine_first:  data/processed/cohort_on_olanzapine_first.parquet
+out_on_olanzapine_last:   data/processed/cohort_on_olanzapine_last.parquet
+out_before_olanzapine:    data/processed/cohort_before_olanzapine.parquet
+
+# OPTIONAL Outputs (pos/neg slope target = sign of RateOfBMIChange)
+posneg_out_wot_olanzapine_first:
+posneg_out_wot_olanzapine_last:
+posneg_out_on_olanzapine_first:
+posneg_out_on_olanzapine_last:
+
+# OPTIONAL Outputs (continuous target = bmi_diff_from_next; while_on inclusion)
+regressiondiff_out_wot_olanzapine_first:
+regressiondiff_out_wot_olanzapine_last:
+regressiondiff_out_on_olanzapine_first:
+regressiondiff_out_on_olanzapine_last:
+
+# Column name mappings
+patientid_col: PatientDurableKey
+sex_col: Sex
+atc_col: ATC
+bmi_instant_col: CreateInstant
+
+# Inclusion mode for olanzapine cohorts: "relevant" (-100/+1 days) or "while_on"
+olz_mode: relevant
+
+# Target column for default (percent5) mode
+target_col: bmi_increase_over5percent

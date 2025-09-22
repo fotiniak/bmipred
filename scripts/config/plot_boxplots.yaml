@@ -1,0 +1,31 @@
+# Which cohorts to compare (choose 'last' or 'first')
+use_set: last
+
+# Plot behavior: 'q2_q3' (median to Q3) or 'full_range' (min to max of cleaned data)
+plot_mode: full_range
+
+# Inputs
+cohort_on_olanzapine_first: data/processed/cohort_on_olanzapine_first.parquet
+cohort_wot_olanzapine_first: data/processed/cohort_wot_olanzapine_first.parquet
+cohort_on_olanzapine_last:  data/processed/cohort_on_olanzapine_last.parquet
+cohort_wot_olanzapine_last: data/processed/cohort_wot_olanzapine_last.parquet
+
+# Output
+output_plot: data/plots/bmi_boxplot.png
+
+# Columns
+value_col: BodyMassIndex_recalc
+label_col: Olanzapine
+
+# Plot appearance
+figsize: [2, 4]
+dpi: 600
+palette: ["tab:blue", "tab:orange"]
+
+# Optional text parameters for the plot (defaults are chosen to match your originals)
+# title: "BMI (Median to 75th Percentile)"   # for q2_q3 mode
+# title: "Boxplot of BMI by olanzapine status*"  # for full_range mode
+# xlabel: "Olanzapine Treatment"
+# ylabel: "BMI (kg/m²)"
+# annotate_text: "Mann-Whitney U-test *** "
+

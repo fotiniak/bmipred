@@ -1,0 +1,53 @@
+# calculate_statistics.yaml
+# Config for comparing distributions between cohorts
+
+inputs:
+  cohort_on_olanzapine_first: data/processed/cohort_on_olanzapine_first.parquet
+  cohort_on_olanzapine_last: data/processed/cohort_on_olanzapine_last.parquet
+  cohort_wot_olanzapine_first: data/processed/cohort_wot_olanzapine_first.parquet
+  cohort_wot_olanzapine_last: data/processed/cohort_wot_olanzapine_last.parquet
+
+outs: data/results
+
+jobs:
+  - title: BMI_Distributions_comparison_first
+    df1: cohort_on_olanzapine_first
+    df2: cohort_wot_olanzapine_first
+    column: BodyMassIndex_recalc
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"
+
+  - title: BMI_Distributions_comparison_last
+    df1: cohort_on_olanzapine_last
+    df2: cohort_wot_olanzapine_last
+    column: BodyMassIndex_recalc
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"
+
+  - title: BMI_Change_Rate_comparison_first
+    df1: cohort_on_olanzapine_first
+    df2: cohort_wot_olanzapine_first
+    column: RateOfBMIChange_month
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"
+
+  - title: BMI_Change_Rate_comparison_last
+    df1: cohort_on_olanzapine_last
+    df2: cohort_wot_olanzapine_last
+    column: RateOfBMIChange_month
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"
+
+  - title: BMI_Variance_comparison_first
+    df1: cohort_on_olanzapine_first
+    df2: cohort_wot_olanzapine_first
+    column: BMI_Variance_History
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"
+
+  - title: BMI_Variance_comparison_last
+    df1: cohort_on_olanzapine_last
+    df2: cohort_wot_olanzapine_last
+    column: BMI_Variance_History
+    label1: "Olanzapine: TRUE"
+    label2: "Olanzapine: FALSE"

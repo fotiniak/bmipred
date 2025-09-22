@@ -1,0 +1,7 @@
+# schema.yaml
+# This file defines the schema of our data and the expected column names for each column. It is used to ensure consistency across different datasets and to facilitate data processing.
+
+patientid: "PatientDurableKey"
+sex: "Sex"
+atc: "ATC"
+bmi_instant: "CreateInstant"

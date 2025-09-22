@@ -1,0 +1,18 @@
+out_dir: data/plots
+
+table_paths:
+  cohort_wot_olanzapine_first: data/processed/cohort_wot_olanzapine_first.parquet
+  cohort_wot_olanzapine_last: data/processed/cohort_wot_olanzapine_last.parquet
+  cohort_on_olanzapine_first: data/processed/cohort_on_olanzapine_first.parquet
+  cohort_on_olanzapine_last: data/processed/cohort_on_olanzapine_last.parquet
+  cohort_before_olanzapine: data/processed/cohort_before_olanzapine.parquet
+
+plot_barplot: true
+plot_heatmap: true
+plot_heatmap_pvalues: true
+
+rename_dict:
+  BodyMassIndex_recalc: "BMI (kg/m²)"
+  healthAssesment_age: "Age (years)"
+  MedicationDuration: "Duration of olanzapine medication"
+  target: "BMI increase >5%"
