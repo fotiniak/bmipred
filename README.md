@@ -15,55 +15,18 @@ This project implements a modular ML pipeline to predict significant BMI increas
 -Configurable experiments via YAML files
 
 
-📁 Repository Structure
-
-bmipred/
-├── data/                                    # Data directory
-│   ├── external/                            # External code mapping datasets
-│   ├── interim/                             # Intermediate cleaned data files
-│   ├── plots/                               # Plots exploratory files
-│   ├── processed/                           # Feature engineered data tables
-│   ├── results/                             # Analysis results data files
-│   └── synthetic/                           # Randomly generated data files
-├── results/                                 # Model outputs and analysis results
-├── scripts/                                 # Executable scripts
-│   ├── config/                              # Configuration files for each script
-│   │   └── train_evaluate_models.yaml       # configs (# named after the script they configure)
-│   └── 22_train_evaluate_models.py          # Scripts numbered in order of execution steb by step
-└── src/bmipred/                             # Source code of all the functions and utilities
-    ├── analysis/                            # Statistical analysis 
-    ├── cleaning/                            # Data cleaning 
-    ├── feature_engineering/                 # Feature engineering functions
-    ├── generate_synthetic/                  # Synthetic data generation
-    ├── modeling/                            # ML pipeline components
-    ├── preprocessing/                       # Data preprocessing
-    └── visualization/                       # Exploratory plotting and visualization
+<img width="737" height="476" alt="image" src="https://github.com/user-attachments/assets/ac27c440-23cc-4568-b8ac-b74946af454b" />
 
 🚀 Quick Start
 Prerequisites
-
-# Required packages
-pip install pandas numpy scikit-learn xgboost matplotlib seaborn shap pyyaml joblib
 
 Clone the repository:
 git clone https://github.com/your-username/bmipred.git
 cd bmipred
 
 Running a Machine Learning Training Experiment:
-Configure your experiment in train_evaluate_models.yaml and run the corresponding script.
+Configure the ML pipeline in train_evaluate_models.yaml and run the corresponding script 22_train_evaluate_models.py.
 
-📈 Output Structure
-Results are organized in timestamped directories:
-results_bmipred_experiment_20231215_143022/
-├── cohort_on_olanzapine_first/
-│   ├── split_0/, split_1/, ..., split_9/
-│   │   ├── models/                 # Trained model artifacts
-│   │   ├── plots/                  # Evaluation plots
-│   │   └── results/                # Metrics and SHAP values
-│   ├── cohort_on_olanzapine_first_summary_metrics.csv
-│   ├── cohort_on_olanzapine_first_feature_summary_statistics.csv
-│   └── mean_roc_curves/
-└── cohort_on_olanzapine_last/
-    └── ...
+<img width="440" height="265" alt="image" src="https://github.com/user-attachments/assets/56162ce6-fff0-4902-a118-eb7be89a7e61" />
 
 
