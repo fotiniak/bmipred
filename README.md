@@ -1,5 +1,5 @@
-BMI Prediction Machine Learning Pipeline
-A comprehensive machine learning pipeline for predicting BMI changes in patients on olanzapine treatment. This repository provides end-to-end functionality for data preprocessing, feature engineering, model training, and evaluation.
+BMI Prediction Machine Learning Pipeline:
+A machine learning pipeline for predicting BMI changes in patients on olanzapine treatment. This repository provides end-to-end functionality for data preprocessing, feature engineering, model training, and evaluation.
 
 🎯 Overview
 This project implements a modular ML pipeline to predict significant BMI increases (>5%) in patients receiving olanzapine treatment. The pipeline includes:
