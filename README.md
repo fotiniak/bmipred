@@ -1,4 +1,4 @@
-# Reproducible Analysis code for the manuscript: https://doi.org/10.1101/2025.08.26.25334441 
+# Analysis code for the manuscript: https://doi.org/10.1101/2025.08.26.25334441 
 # Predicting Olanzapine Induced BMI increase using Machine Learning on population-based Electronic Health Records
 
 > This repository contains the complete workflow for the analysis performed in the manuscript, from data preprocessing, feature engineering, exploratory analysis to model training, evaluation, and plots/tables generation.
@@ -69,7 +69,7 @@ The project is organized as a set of parameterized Python scripts and YAML confi
 
 ## Environment & Dependencies
 
-We recommend Python ≥ 3.12.
+We recommend Python ≥ 3.13.
 
 The package dependencies can be found in the requirements.txt file.
 
@@ -132,6 +132,8 @@ The pipeline performs:
 
 ## Notes on Reproducibility
 
+* The manuscript results cannot be exactly reproduced due to sensitive data restrictions
+* The exact data preprocessing and ML pipeline can be tested on the synthetic data
 * We fix `random_state` throughout the pipeline.
 * Splits are **stratified by patient** to avoid leakage: each patient sample appears in exactly one of train/test for a given split.
 * Model selection uses **StratifiedKFold** Cross Validation and **ROC-AUC** scoring by default.
