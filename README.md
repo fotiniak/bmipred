@@ -94,9 +94,9 @@ python scripts/01_clean_data.py
 ```
 ---
 
-## Reproducing the Paper Results
+## The Machine Learning Pipeline
 
-The ML training pipeline is fully parameterized via `scripts/configs/22_train_evaluate_models.yaml`:
+The ML training pipeline can be parameterized via `scripts/configs/22_train_evaluate_models.yaml`:
 
 The pipeline performs:
 
