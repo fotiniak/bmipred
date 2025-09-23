@@ -1,4 +1,4 @@
-# Reproducible Analysis code for the manuscript:
+# Reproducible Analysis code for the manuscript: https://doi.org/10.1101/2025.08.26.25334441 
 # Predicting Olanzapine Induced BMI increase using Machine Learning on population-based Electronic Health Records
 
 > This repository contains the complete workflow for the analysis performed in the manuscript, from data preprocessing, feature engineering, exploratory analysis to model training, evaluation, and plots/tables generation.
