@@ -84,7 +84,7 @@ git clone https://github.com/fotiniak/bmipred.git
 # Configure the 00_generate_synthetic_data.yaml file and run
 python scripts/00_generate_synthetic_data.py
 ```
-# The generated data follow the same schema (aka column names and data types) similar to the original EHR data.
+### The generated synthetic data follow the same schema (aka column names and data types) similar to the original EHR data.
 
 **The data cleaning and preprocessing steps can then be tested and applied to the synthetic data**
 
