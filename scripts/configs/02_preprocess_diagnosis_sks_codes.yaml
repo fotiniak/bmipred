@@ -1,0 +1,15 @@
+# preprocess_diagnosis_sks_codes.yaml
+
+# input filename for cleaned diagnosis table
+input_file: data/interim/diagnosis_cleaned.parquet
+
+# output filename for interim diagnosis table
+output_file: data/interim/diagnosis_processed_sks_codes.parquet
+
+# path to official SKS codes mapping csv file
+official_codes: data/external/SKSCodes.csv
+
+# diagnosis_sks_codes function parameters
+code_col: SKSCode
+code_desc_col: DiagnosisName
+threshold: 89
