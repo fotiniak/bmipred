@@ -11,7 +11,7 @@
 * [Repository Structure](#repository-structure)
 * [Environment & Dependencies](#environment--dependencies)
 * [Quick Start](#quick-start)
-* [Reproducing the Paper Results](#reproducing-the-paper-results)
+* [The Machine Learning Pipeline](#the-machine-learning-pipeline)
 * [Outputs](#outputs)
 * [Notes on Reproducibility](#notes-on-reproducibility)
 
@@ -111,7 +111,7 @@ The pipeline performs:
 
 ---
 
-## Modeling Outputs
+## Outputs
 
 * **Per-split metrics** (under `models/<run_timestamp>/<table>/split_<k>/`):
 
