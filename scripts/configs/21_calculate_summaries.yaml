@@ -1,0 +1,14 @@
+# calculate_summaries.yaml
+
+# inputs
+input_dir: data/processed
+
+tables:
+  cohort_on_olanzapine_first: cohort_on_olanzapine_first.parquet
+  cohort_on_olanzapine_last: cohort_on_olanzapine_last.parquet
+
+# outputs
+output_dir: data/results
+
+
+

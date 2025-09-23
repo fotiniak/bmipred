@@ -1,0 +1,21 @@
+# preprocess_diagnosis_intervals.yaml
+
+# base input directory for raw parquet files
+input_file: data/interim/diagnosis_processed_sks_codes.parquet
+
+# base output directory for cleaned parquet files
+output_file: data/interim/diagnosis_final_intervals.parquet
+
+# Kodes file path
+kodes_file: data/external/SKSCodes_Grouped.csv
+
+# diagnosis_intervals function parameters
+# column names in the diagnosis table
+df_codes_col: SKSCode
+df_patientid_col: PatientDurableKey
+df_startdate_col: DiagnosisStartDate
+df_enddate_col: DiagnosisEndDate
+# column names in the Kodes table
+codesMap_codes_col: SKSCodes
+codesMap_desc_col: Description
+codesMap_groups_col: SKSCodes_range

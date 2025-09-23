@@ -1,0 +1,167 @@
+# clean_data.yaml
+
+# base input directory for raw parquet files
+input_dir: data/synthetic/
+
+# base output directory for cleaned parquet files
+output_dir: data/interim/
+
+# tables to clean (set to true/false)
+tables:
+  patients: true
+  healthAssessment: true
+  diagnosis: true
+  medication: true
+  labComponentResults: true
+  hospitalAdmission: true
+  familyHistory: true
+
+# missing values to replace
+missing: ["*None", "None", "*Unknown", "Unknown", "*Ukendt", "Ukendt", "*Deleted", "Deleted", "*Unspecified", "Unspecified", "Ikke spurgt", "Aflyst", "Ingen kendte lidelser", "Andet"]
+
+# column sets to be converted by correct dtype
+columns:
+  numeric: 
+    - DurableKey
+    - PatientDurableKey
+    - EncounterKey
+    - AlcoholConsumption
+    - HeightInCentimeters
+    - WeightInGrams
+    - BodyMassIndex
+    - BodySurfaceArea
+    - SystolicBloodPressure
+    - DiastolicBloodPressure
+    - TemperatureInCelsius
+    - DepartmentKey
+    - AdministrationDepartmentKey
+    - MedicationOrderId
+    - StrengthNumeric
+    - Quantity
+    - MinimumDose
+    - MaximumDose
+    - AdministrationsKSN
+    - AdministrationsStatusId
+    - Value
+    - HospitalAdmissionKey
+    - PatientSourceDataDurableKey
+    - AgeKey
+    - AdmissionDateKey
+    - AdmissionTimeOfDayKey
+    - InpatientAdmissionDateKey
+    - InpatientAdmissionTimeOfDayKey
+    - DischargeDateKey
+    - DischargeTimeOfDayKey
+    - DischargeOrderDateKey
+    - DischargeOrderTimeOfDayKey
+    - AdmittingDepartmentKey
+    - DepartmentKey
+    - AdmittingProviderKey
+    - AdmittingProviderDurableKey
+    - AdmittingProviderSourceDataDurableKey
+    - AdmissionBedRequestKey
+    - AdmissionEmployeeDurableKey
+    - DischargingProviderKey
+    - DischargingProviderDurableKey
+    - DischargingProviderSourceDataDurableKey
+    - DischargeEmployeeDurableKey
+    - FollowUpProviderKey
+    - FollowUpProviderDurableKey
+    - FollowUpProviderSourceDataDurableKey
+    - PresentOnAdmissionDiagnosisComboKey
+    - PresentOnAdmissionDiagnosisComboIdTypeId
+    - PresentOnAdmissionDiagnosisNumericId
+    - HospitalAcquiredDiagnosisComboKey
+    - HospitalAcquiredDiagnosisComboIdTypeId
+    - HospitalAcquiredDiagnosisNumericId
+    - DischargeDiagnosisComboKey
+    - DischargeDiagnosisComboIdTypeId
+    - DischargeDiagnosisNumericId
+    - PrincipalProblemKey
+    - PrimaryCodedDiagnosisKey
+    - GuarantorKey
+    - GuarantorDurableKey
+    - PrimaryCoverageKey
+    - EncounterEpicCsn
+    - HospitalAccountEpicId
+    - LengthOfStayInDays
+    - InpatientLengthOfStayInDays
+    - ExpectedInpatientLengthOfStayInDays
+    - TotalCost
+    - DirectCost
+    - IndirectCost
+    - FixedCost
+    - VariableCost
+    - DirectFixedCost
+    - DirectVariableCost
+    - IndirectFixedCost
+    - IndirectVariableCost
+    - LaborDirectCost
+    - LaborDirectFixedCost
+    - LaborDirectVariableCost
+    - SuppliesCost
+    - OtherDirectCost
+    - OtherDirectFixedCost
+    - OtherDirectVariableCost
+    - Count
+    - _IsInferred
+    - _NumberOfSources
+    - _HasSourceClarity
+  datetime: 
+    - BirthDate
+    - DeathDate
+    - CreateInstant
+    - DiagnosisStartDate
+    - DiagnosisEndDate
+    - ReleaseInstant
+    - OrderedInstant
+    - StartInstant
+    - DiscontinuedInstant
+    - ScheduledAdministrationInstant
+    - AdministrationInstant
+    - RegistrationInstant
+    - CollectionInstant
+  categorical: 
+    - PatientEpicId
+    - Sex
+    - MaritalStatus
+    - Ethnicity
+    - SmokingStatus
+    - DrugUse
+    - SKSCode
+    - DiagnosisName
+    - Status
+    - Type
+    - DiagnosisCode
+    - Name
+    - GenericName
+    - SimpleGenericName
+    - ATC
+    - Strength
+    - StrengthUnit
+    - DoseDescription
+    - Frequency
+    - FrequencyType
+    - FrequencyFreeText
+    - FrequencyFreeTextType
+    - QuantityUnit
+    - DoseUnit
+    - FirstIndicationForUse
+    - SecondIndicationForUse
+    - ThirdIndicationForUse
+    - AdministrationsStatus
+    - Labanalysis
+    - Unit
+    - ReferenceValues
+    - Flag
+    - Relation
+    - MedicalCondition
+  boolean: 
+    - MedicationsReviewed
+    - ProblemListReviewed
+    - AllergiesReviewed
+    - DiagnosisIsChronic
+    - IsActionDiagnosis
+    - Abnormal
+
+
