@@ -1,142 +1,155 @@
-# Predicting Olanzapine Induced BMI increase using Machine Learning on population-based Electronic Health Records
-
-### https://doi.org/10.1101/2025.08.26.25334441 
+# Reproducible Analysis code for the manuscript <Predicting Olanzapine Induced BMI increase using Machine Learning on population-based Electronic Health Records>
 
 > This repository contains the complete workflow for the analysis performed in the manuscript, from data preprocessing, feature engineering, exploratory analysis to model training, evaluation, and plots/tables generation.
+
+**DOI:** https://doi.org/10.1101/2025.08.26.25334441
 
 ---
 
 ## Table of Contents
 
-* [Overview](#overview)
-* [Repository Structure](#repository-structure)
-* [Environment & Dependencies](#environment--dependencies)
-* [Quick Start](#quick-start)
-* [The Machine Learning Pipeline](#the-machine-learning-pipeline)
-* [Outputs](#outputs)
-* [Notes on Reproducibility](#notes-on-reproducibility)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Pipeline](#pipeline)
+- [Overview](#overview)
+- [Modeling Outputs](#modeling-outputs)
+- [Notes on Reproducibility](#notes-on-reproducibility)
+
+---
+
+## Quick Start
+
+```bash
+# 1. Create Python environment (3.10+)
+conda create -n bmipred python=3.10
+conda activate bmipred
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the full pipeline (scripts must be run in order)
+python scripts/01_generate_synthetic.py   # optional — generate synthetic test data
+python scripts/02_data_cleaning.py
+python scripts/03_collapse_diagnosis.py
+python scripts/04_collapse_medication.py
+python scripts/05_feature_engineering.py
+python scripts/06_create_cohort1.py
+python scripts/07_create_cohort2.py
+python scripts/08_statistics_plots.py
+python scripts/09_train_ml_models.py
+```
+
+All configuration parameters (paths, splits, thresholds, etc.) are defined at the top of each script. Results are saved to `data/results/`.
+
+
+---
+
+## Pipeline
+
+The workflow is split into nine sequential scripts, each self-contained with configuration at the top.
+
+| Step | Script | Description |
+|------|--------|-------------|
+| 1 | `01_generate_synthetic.py` | Generate synthetic patient records for local testing |
+| 2 | `02_data_cleaning.py` | Clean and standardise raw medical tables |
+| 3 | `03_collapse_diagnosis.py` | Complete missing SKS codes via fuzzy matching; collapse overlapping diagnosis intervals |
+| 4 | `04_collapse_medication.py` | Compute daily dosages; collapse overlapping medication intervals |
+| 5 | `05_feature_engineering.py` | Extract BMI, diagnosis, medication, lab, and hospitalisation features |
+| 6 | `06_create_cohort1.py` | Assemble treatment-naive cohort — baseline BMI ≤ 90 days before olanzapine start, target BMI at 30–180 days after |
+| 7 | `07_create_cohort2.py` | Assemble on-treatment cohort — BMI measured ≥ 30 days after start and before discontinuation |
+| 8 | `08_statistics_plots.py` | Produce cohort descriptive statistics, distributions, correlations, and LOWESS trendlines |
+| 9 | `09_train_ml_models.py` | Train models with repeated stratified splits, evaluate, and generate SHAP explanations |
 
 ---
 
 ## Overview
 
-The project is organized as a set of parameterized Python scripts and YAML configurations. Key capabilities:
+The project is organised as a set of parameterised Python scripts. Key capabilities:
 
-* Exploratory plots (distributions, correlations, LOWESS trends)
-* Cohort/data summaries
-* Statistical comparisons of BMI between groups with **normality checks**
-* End-to-end ML training with cross-validated model selection
-* Subgroup ROC analyses (e.g., **age bins** and **sex**)
-* SHAP explainability analysis also aggregated **across splits**
-* Compact and detailed metrics summaries
+**Preprocessing & feature engineering**
+- Fuzzy matching and hierarchical completion of missing diagnosis codes
+- Interval collapsing for diagnoses and medications
+- Feature extraction across five data domains: BMI, diagnoses, medications, lab tests, hospitalisations
+
+**Exploratory analysis**
+- Cohort summary tables
+- Distributions, LOWESS trendlines, boxplots, and correlation heatmaps
+- Statistical comparisons of BMI between groups with normality checks (Shapiro–Wilk, Mann–Whitney U, Wilcoxon)
+
+**Machine learning pipeline**
+- Patient-level stratified train/test splits (no leakage across splits)
+- Consistent preprocessing per split: imputation, scaling, one-hot encoding with fixed category levels
+- Cross-validated hyperparameter search (`GridSearchCV`, `StratifiedKFold`, ROC-AUC scoring)
+- Classification threshold selected to maximise F1 on the training fold
+- Subgroup ROC curves per split — age bins (*18–29, 30–49, 50–69, 70+*) and sex
+- Mean ROC aggregated across splits, per subgroup and per model
+- SHAP values per split and aggregated across splits
 
 ---
 
-## Repository Structure
+## Project Structure
 
 ```
-.
-├── src/
-│   └── bmipred/                                        # All the python code arranged in directories
-│       ├── analysis/                                   # Data exploratory analysis and descriptive statistics
-│       ├── cleaning/                                   # Initial data cleaning
-│       ├── feature_engineering/                        # Combining BMI data with other data tables (eg. medications, diagnoses) and creating historical features relative to the BMI timestamps
-│       ├── generate_synthetic/                         # Generating synthetic data with a similar schema with the EHR data to use for code testing 
-│       ├── modeling/                                   # Carry out the complete machine learning pipeline and test different ML models
-│       ├── preprocessing/                              # Preprocessing and correction of time intervals in the medications and diagnoses tables
-│       └── visualization/                              # Basic exploratory analysis boxplots, histograms and correlation plots
-│          
-├── scripts/                                            # Scripts numbered by order of excecution
-│   ├── 00_generate_synthetic_data.yaml
-│   ├── 01_clean_data.yaml
-│   ├── 02_preprocess_diagnosis_sks_codes.yaml
-│   ├──...
-│   └── configs/                                        # Configuration .yaml files for each script
-│       ├── 00_generate_synthetic_data.yaml
-│       ├── 01_clean_data.yaml
-│       ├── 02_preprocess_diagnosis_sks_codes.yaml
-│       └── ...
-│       
+bmipred2/
+├── src/bmipred/                      # Core library
+│   ├── data_generation/              # Synthetic data generation
+│   ├── data_preprocessing/           # Cleaning, interval collapsing, code completion
+│   ├── feature_engineering/          # BMI, diagnosis, medication, lab, hospitalization features
+│   ├── statistics/                   # Distributions, correlations, boxplots, trendlines
+│   └── modeling/                     # ML pipeline, training, evaluation, plots, reports
+│
+├── scripts/                          # Executable scripts (run in numbered order)
+│   ├── 01_generate_synthetic.py      # Generate synthetic medical data for testing
+│   ├── 02_data_cleaning.py           # Clean raw medical tables (parquet)
+│   ├── 03_collapse_diagnosis.py      # Complete missing SKS codes & collapse diagnosis intervals
+│   ├── 04_collapse_medication.py     # Calculate daily dosages & collapse medication intervals
+│   ├── 05_feature_engineering.py     # Apply all feature engineering modules
+│   ├── 06_create_cohort1.py          # Build treatment-naive cohort (baseline BMI → future BMI)
+│   ├── 07_create_cohort2.py          # Build on-treatment cohort (BMI while on olanzapine)
+│   ├── 08_statistics_plots.py        # Generate cohort statistics and plots
+│   └── 09_train_ml_models.py         # Train, evaluate, and explain ML models
+│
 ├── data/
-│   └── external/                                       # External data downloaded from the internet eg. SKS Codes for mapping diagnoses
-│ 
-│              
-├── requirements.txt                                    # Necessary packages to be installed for the pipeline to work
-├── README.md
-└── LICENSE
+│   ├── external/                     # Reference data (e.g. SKS diagnosis code tables)
+│   ├── preprocessed/                 # Processed input data (parquet files)
+│   ├── results/                      # Output results (auto-generated at runtime)
+│   └── synthetic/                    # Synthetic test data
+│
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## Environment & Dependencies
+## Modeling Outputs
 
-We recommend Python ≥ 3.13.
+Results are written to `data/results/ml_models/<run_timestamp>/<table>/`.
 
-The package dependencies can be found in the requirements.txt file.
+**Per split** — `split_<k>/`
 
-## Quick Start
+| Path | Contents |
+|------|----------|
+| `models/` | Best estimator per model (`.joblib`) and fitted preprocessor |
+| `plots/` | ROC, PR curve, calibration, confusion matrix, subgroup ROC; combined `model_evaluation.pdf` |
+| `results/` | Per-model metrics, SHAP values, feature importances |
 
-Clone the repository:
-git clone https://github.com/fotiniak/bmipred.git
+**Aggregated across splits** — `<table>/`
 
-**Generate Synthetic Data**
-
-```bash
-# Configure the 00_generate_synthetic_data.yaml file and run
-python bmipred/scripts/00_generate_synthetic_data.py
-```
-### The generated synthetic data follow the same schema (aka column names and data types) similar to the original EHR data.
-
-**The data cleaning and preprocessing steps can then be tested and applied to the synthetic dataset**
-
-```bash
-python bmipred/scripts/01_clean_data.py
-```
----
-
-## The Machine Learning Pipeline
-
-The ML training pipeline can be parameterized via `scripts/configs/22_train_evaluate_models.yaml`:
-
-The pipeline performs:
-
-* **Group-wise stratification** train/test split (patient-level)
-* Preprocessing (imputation, scaling, consistent OHE levels)
-* Cross-validated hyperparameter search (`GridSearchCV`)
-* Threshold selection (best **F1** during training)
-* Evaluation (ROC, PR, calibration, confusion matrix; metrics saved)
-* **Subgroup ROC** per split (age bins: *18–29, 30–49, 50–69, 70+*; and *Sex*)
-* **Mean ROC across splits** per subgroup and per model
-* **SHAP** per split and **aggregated across splits** per prediction dataset
-
----
-
-## Outputs
-
-* **Per-split metrics** (under `models/<run_timestamp>/<table>/split_<k>/`):
-
-  * `models/` – best estimator per model (`.joblib`) and the fitted preprocessor
-  * `plots/` – ROC, PR, calibration, confusion matrices, subgroup ROC; combined `model_evaluation.pdf`
-  * `results/` – per-model metrics, SHAP values, feature importances
-
-* **Aggregated (per table)** (under `models/<run_timestamp>/<table>/`):
-
-  * `<table>_all_splits_metrics.csv`
-  * `<table>_summary_metrics.csv` (**wide** with CIs)
-  * `<table>_summary_metrics_compact.csv` (**compact, “AUROC (0.70–0.76)” style**)
-  * `<table>_mean_roc_*` (overall, by age, by sex)
-  * `<table>_shap_*_across_splits.*` (per-model SHAP aggregation)
-
+| File | Contents |
+|------|----------|
+| `<table>_all_splits_metrics.csv` | Raw metrics for every split |
+| `<table>_summary_metrics.csv` | Wide summary with confidence intervals |
+| `<table>_summary_metrics_compact.csv` | Compact format, e.g. *AUROC (0.70–0.76)* |
+| `<table>_mean_roc_*` | Mean ROC overall, by age group, and by sex |
+| `<table>_shap_*_across_splits.*` | Per-model SHAP aggregation across splits |
 
 ---
 
 ## Notes on Reproducibility
 
-* The manuscript results cannot be exactly reproduced due to sensitive data restrictions
-* The exact data preprocessing and ML pipeline can be tested on the synthetic data
-* We fix `random_state` throughout the pipeline.
-* Splits are **stratified by patient** to avoid leakage: each patient sample appears in exactly one of train/test for a given split.
-* Model selection uses **StratifiedKFold** Cross Validation and **ROC-AUC** scoring by default.
-* Thresholds for classification are chosen to **maximize F1** on the training set.
+- `random_state` is fixed throughout the pipeline (`101010` by default).
+- Splits are **stratified by patient**: each patient appears in exactly one partition per split, preventing data leakage.
+- Model selection uses **StratifiedKFold** cross-validation with **ROC-AUC** scoring.
+- Classification thresholds are chosen to **maximise F1** on the training fold and applied to the held-out test set.
 
 ---

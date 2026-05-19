@@ -9,39 +9,25 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 
-from .data_utils import detect_feature_types
+from .data_utils import detect_feature_types, convert_timedelta_columns, prettify_feature_name
 
 
 def preprocess_data(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
     target_col: str,
+    column_mapping: Optional[Dict[str, str]] = None,
     categorical_levels: Optional[Dict[str, np.ndarray]] = None,
     categorical_columns: Optional[List[str]] = None
 ) -> Tuple[np.ndarray, np.ndarray, List[str], List[str], ColumnTransformer]:
-    """
-    Preprocess training and test data with scaling, encoding, and imputation.
-    
-    Args:
-        train_df: Training DataFrame
-        test_df: Test DataFrame
-        target_col: Target column name
-        categorical_levels: Predefined categorical levels for consistency
-        categorical_columns: Predefined categorical column names
-        
-    Returns:
-        (X_train, X_test, feature_names, pretty_feature_names, preprocessor)
-    """
-    
+    # Preprocess training and test data with scaling, encoding, and imputation.
+    train_df = convert_timedelta_columns(train_df, target_col)
+    test_df = convert_timedelta_columns(test_df, target_col)
+
     numeric, binary, detected_categorical = detect_feature_types(train_df, target_col)
     categorical = categorical_columns if categorical_columns is not None else detected_categorical
-    
-    # Handle timedelta columns
     td_cols = [c for c in train_df.select_dtypes(['timedelta64']).columns if c != target_col]
-    for col in td_cols:
-        for df in (train_df, test_df):
-            df[col] = df[col].dt.days
-        numeric = list(set(numeric) | set(td_cols))
+    numeric = list(set(numeric) | set(td_cols))
     
     # Setup categorical encoder
     if categorical_levels is not None and categorical:
@@ -81,5 +67,6 @@ def preprocess_data(
     if categorical:
         cats = preprocessor.named_transformers_['cat'].named_steps['ohe'].get_feature_names_out(categorical)
         feat_names += list(cats)
+    pretty_feat_names = [prettify_feature_name(f, column_mapping or {}) for f in feat_names]
 
-    return X_train, X_test, feat_names, preprocessor
+    return X_train, X_test, feat_names, pretty_feat_names, preprocessor

@@ -9,7 +9,7 @@ import logging
 
 
 def _is_binary(series: pd.Series) -> bool:
-    """Check if series is binary."""
+    # Check if series is binary.
     if pd.api.types.is_bool_dtype(series):
         return True
     s = series.dropna().unique()
@@ -17,7 +17,7 @@ def _is_binary(series: pd.Series) -> bool:
 
 
 def _pseudo_stats(arr: np.ndarray) -> tuple:
-    """Compute pseudo-statistics for small arrays."""
+    # Compute pseudo-statistics for small arrays.
     n = len(arr)
     if n < 5:
         return (np.nan, np.nan, np.nan)
@@ -29,7 +29,7 @@ def _pseudo_stats(arr: np.ndarray) -> tuple:
 
 
 def summarise_column(col: pd.Series) -> Dict[str, Any]:
-    """Create summary statistics for a column."""
+    # Create summary statistics for a column.
     total_n = len(col)
     miss_n = col.isna().sum()
     out = {"N": total_n, "Missing_%": round(miss_n / total_n * 100, 2)}
@@ -59,25 +59,29 @@ def summarise_column(col: pd.Series) -> Dict[str, Any]:
     return out
 
 
-def save_feature_summary(df: pd.DataFrame, csv_path: str):
-    """Save feature summary statistics to CSV."""
+def save_feature_summary(
+    df: pd.DataFrame,
+    csv_path: str,
+    column_mapping: Dict[str, str] | None = None,
+):
+    # Save feature summary statistics to CSV.
     rows = []
     for col in df.columns:
         stats = summarise_column(df[col])
-        stats["Variable"] = col  # Use column name directly, no pretty function
+        stats["Variable"] = column_mapping.get(col, col) if column_mapping else col
         rows.append(stats)
 
-    summary = pd.DataFrame(rows)[[
+    summary = pd.DataFrame(rows).reindex(columns=[
         "Variable", "N", "Missing_%",
         "True_count", "False_count", "True_percentage", "False_percentage",
         "Min", "Max", "Mean", "Median"
-    ]]
+    ])
     summary.to_csv(csv_path, index=False)
     logging.info(f"Feature summary saved → {csv_path}")
 
 
 def create_summary_metrics(metrics_df: pd.DataFrame, keep_metrics: Dict[str, str]) -> pd.DataFrame:
-    """Create summary metrics across splits."""
+    # Create summary metrics across splits.
     metric_cols = list(keep_metrics.keys())
     summary_rows = []
     
@@ -94,7 +98,7 @@ def create_summary_metrics(metrics_df: pd.DataFrame, keep_metrics: Dict[str, str
 
 
 def create_compact_metrics(summary_df: pd.DataFrame, keep_metrics: Dict[str, str]) -> pd.DataFrame:
-    """Create compact metrics with confidence intervals."""
+    # Create compact metrics with confidence intervals.
     compact_cols = ["Model"]
     compact_df = summary_df[["Model"]].copy()
     
@@ -115,7 +119,7 @@ def save_all_reports(
     output_dir: str,
     keep_metrics: Dict[str, str]
 ):
-    """Save all summary reports for a table."""
+    # Save all summary reports for a table.
     # Combine all splits
     combined_metrics = pd.concat(all_metrics, ignore_index=True)
     combined_metrics.to_csv(

@@ -2,7 +2,6 @@
 # bmipred/modeling/pipeline.py
 
 import os
-import sys
 import datetime
 import logging
 import joblib
@@ -10,8 +9,9 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Any, Optional
 from matplotlib.backends.backend_pdf import PdfPages
+from sklearn.utils.class_weight import compute_sample_weight
 
-from bmipred.modeling.data_utils import (stratified_train_test_split, get_global_categorical_levels, create_output_directory)
+from bmipred.modeling.data_utils import (stratified_split, get_global_categorical_levels, create_output_directory)
 from bmipred.modeling.preprocessing import preprocess_data
 from bmipred.modeling.model_trainer import train_all_models
 from bmipred.modeling.evaluator import evaluate_all_models
@@ -20,16 +20,16 @@ from bmipred.modeling.reports import save_feature_summary, save_all_reports
 
 
 class BMIPredPipeline:
-    """Main pipeline for BMI prediction experiments."""
+    # Main pipeline for BMI prediction modeling experiments.
     
     def __init__(self, config: Dict[str, Any]):
-        """Initialize pipeline with configuration."""
+        # Initialize pipeline with configuration.
         self.config = config
         self.logger = self._setup_logging()
         self.plotter = ModelPlotter(config)
     
     def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration."""
+        # Setup logging configuration.
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
@@ -38,7 +38,7 @@ class BMIPredPipeline:
         return logging.getLogger(__name__)
     
     def _determine_labels(self, train_df: pd.DataFrame) -> tuple:
-        """Determine positive and negative labels and class names."""
+        # Determine positive and negative labels and class names.
         target_col = self.config['data']['target_col']
         target_uniques = train_df[target_col].unique()
         
@@ -63,7 +63,7 @@ class BMIPredPipeline:
         categorical_levels: Optional[Dict] = None,
         categorical_columns: Optional[List[str]] = None
     ) -> Optional[Dict[str, Any]]:
-        """Run pipeline for a single train/test split."""
+        # Run pipeline for a single train/test split.
         self.logger.info(f"Running split {split_id} for {table_name}")
         
         try:
@@ -74,11 +74,11 @@ class BMIPredPipeline:
             models_dir = os.path.join(split_dir, "models")
             
             # Split data
-            train_df, test_df = stratified_train_test_split(
+            train_df, test_df = stratified_split(
                 df,
                 self.config['data']['target_col'],
-                test_size=self.config['data']['test_size'],
-                random_state=self.config['experiment']['random_state'] + split_id
+                test_size=self.config['split']['test_size'],
+                random_state=self.config['split']['random_state']
             )
             
             # Remove specified columns
@@ -90,9 +90,10 @@ class BMIPredPipeline:
             pos_label, neg_label, class_names = self._determine_labels(train_df)
             
             # Preprocess data
-            X_train, X_test, feature_names, preprocessor = preprocess_data(
+            X_train, X_test, feature_names, pretty_feature_names, preprocessor = preprocess_data(
                 train_df, test_df,
                 self.config['data']['target_col'],
+                self.config.get('column_mapping'),
                 categorical_levels,
                 categorical_columns
             )
@@ -100,17 +101,22 @@ class BMIPredPipeline:
             # Prepare labels
             y_train = (train_df[self.config['data']['target_col']] == pos_label).astype(int).values
             y_test = (test_df[self.config['data']['target_col']] == pos_label).astype(int).values
+            sample_weight = compute_sample_weight(class_weight='balanced', y=y_train)
             
             # Train models
             trained_models = train_all_models(
                 self.config['models'],
                 X_train, y_train,
-                self.config['training']
+                self.config['training'],
+                sample_weight=sample_weight
             )
             
             # Evaluate models
             metrics_df, shap_values, shap_importance = evaluate_all_models(
-                trained_models, X_train, y_train, X_test, y_test, feature_names
+                trained_models, X_train, y_train, X_test, y_test, feature_names,
+                cv_folds=self.config['training']['cv_folds'],
+                sample_weight=sample_weight,
+                random_state=self.config['experiment']['random_state'] + split_id + 7000,
             )
             
             # Create plots
@@ -118,10 +124,53 @@ class BMIPredPipeline:
             with PdfPages(pdf_path) as pdf:
                 self._create_all_plots(
                     trained_models, X_train, y_train, X_test, y_test,
-                    shap_values, class_names, feature_names,
+                    shap_values, class_names, pretty_feature_names,
                     preprocessor, test_df, pos_label, split_id,
                     plots_dir, pdf
                 )
+
+                for name, (model, _) in trained_models.items():
+                    self.plotter.plot_roc_auc_all_subgroups(
+                        model, preprocessor, test_df,
+                        self.config['data']['target_col'], pos_label,
+                        subgroup_col='healthAssesment_age',
+                        group_labels=['18-29', '30-49', '50-69', '70+'],
+                        plots_dir=plots_dir, pdf=pdf,
+                        split_id=split_id, model_name=name,
+                        bins=[0, 30, 50, 70, 120],
+                        labels=['18-29', '30-49', '50-69', '70+']
+                    )
+                    self.plotter.plot_roc_auc_all_subgroups(
+                        model, preprocessor, test_df,
+                        self.config['data']['target_col'], pos_label,
+                        subgroup_col='days_to_next_bmi',
+                        group_labels=['0-30', '30-180', '180-360', '360+'],
+                        plots_dir=plots_dir, pdf=pdf,
+                        split_id=split_id, model_name=name,
+                        bins=[-0.001, 30, 180, 360, np.inf],
+                        labels=['0-30', '30-180', '180-360', '360+']
+                    )
+                    self.plotter.plot_roc_auc_all_subgroups(
+                        model, preprocessor, test_df,
+                        self.config['data']['target_col'], pos_label,
+                        subgroup_col='BodyMassIndex_recalc',
+                        group_labels=['Underweight', 'Normal', 'Overweight', 'Obese'],
+                        plots_dir=plots_dir, pdf=pdf,
+                        split_id=split_id, model_name=name,
+                        bins=[-np.inf, 18.5, 25, 30, np.inf],
+                        labels=['Underweight', 'Normal', 'Overweight', 'Obese'],
+                        right=False
+                    )
+                    sex_labels = sorted(test_df['Sex'].dropna().unique()) if 'Sex' in test_df else []
+                    if sex_labels:
+                        self.plotter.plot_roc_auc_all_subgroups(
+                            model, preprocessor, test_df,
+                            self.config['data']['target_col'], pos_label,
+                            subgroup_col='Sex',
+                            group_labels=sex_labels,
+                            plots_dir=plots_dir, pdf=pdf,
+                            split_id=split_id, model_name=name
+                        )
             
             # Save artifacts
             self._save_artifacts(
@@ -146,7 +195,9 @@ class BMIPredPipeline:
                 'predictions': predictions,
                 'test_df': test_df,
                 'shap_values': shap_values,
-                'feature_names': feature_names
+                'feature_names': feature_names,
+                'pretty_feature_names': pretty_feature_names,
+                'X_test': X_test
             }
             
         except Exception as e:
@@ -157,11 +208,11 @@ class BMIPredPipeline:
                          shap_values, class_names, feature_names,
                          preprocessor, test_df, pos_label, split_id,
                          plots_dir, pdf):
-        """Create all plots for a single split."""
+        # Create all plots for a single split.
         for name, (model, _) in trained_models.items():
             # Get predictions
             y_prob = model.predict_proba(X_test)[:, 1]
-            from .core.metrics import find_best_f1_threshold
+            from bmipred.modeling.metrics import find_best_f1_threshold
             threshold, _ = find_best_f1_threshold(y_train, model.predict_proba(X_train)[:, 1])
             y_pred = (y_prob > threshold).astype(int)
             
@@ -182,7 +233,7 @@ class BMIPredPipeline:
     def _save_artifacts(self, trained_models, preprocessor, class_names,
                        metrics_df, shap_values, shap_importance,
                        models_dir, results_dir, split_id):
-        """Save all artifacts for a split."""
+        # Save all artifacts for a split.
         # Save models
         for name, (model, _) in trained_models.items():
             joblib.dump(model, os.path.join(models_dir, f"{name}.joblib"))
@@ -203,7 +254,7 @@ class BMIPredPipeline:
                 )
     
     def run_full_experiment(self):
-        """Run complete experiment for all tables."""
+        # Run complete experiment for all tables.
         # Create timestamped output directory
         now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         script_name = "bmipred_experiment"
@@ -229,7 +280,8 @@ class BMIPredPipeline:
                 # Save feature summary
                 save_feature_summary(
                     df,
-                    os.path.join(table_dir, f"{table_name}_feature_summary_statistics.csv")
+                    os.path.join(table_dir, f"{table_name}_feature_summary_statistics.csv"),
+                    column_mapping=self.config.get('column_mapping')
                 )
                 
                 # Get global categorical levels for consistency
@@ -240,6 +292,11 @@ class BMIPredPipeline:
                 # Run all splits
                 all_results = []
                 all_predictions = {name: [] for name in self.config['models'].keys()}
+                all_test_dfs = []
+                all_shap_values = {name: [] for name in self.config['models'].keys()}
+                all_feature_names = []
+                all_pretty_feature_names = []
+                all_X_test = []
                 
                 for split_id in range(n_repeats):
                     result = self.run_single_split(
@@ -249,8 +306,13 @@ class BMIPredPipeline:
                     
                     if result is not None:
                         all_results.append(result['metrics'])
+                        all_test_dfs.append(result['test_df'])
+                        all_feature_names.append(result['feature_names'])
+                        all_pretty_feature_names.append(result['pretty_feature_names'])
+                        all_X_test.append(result['X_test'])
                         for model_name, pred in result['predictions'].items():
                             all_predictions[model_name].append(pred)
+                            all_shap_values[model_name].append(result['shap_values'][model_name])
                 
                 if all_results:
                     # Create summary reports
@@ -262,11 +324,95 @@ class BMIPredPipeline:
                     # Create aggregated plots
                     for model_name, predictions in all_predictions.items():
                         if predictions:
-                            self.plotter.plot_mean_roc_across_splits(
-                                predictions,
-                                os.path.join(table_dir, f"{table_name}_mean_roc_{model_name}.png"),
-                                f"{table_name} - {model_name}"
-                            )
+                            try:
+                                self.plotter.plot_mean_roc_across_splits(
+                                    predictions,
+                                    os.path.join(table_dir, f"{table_name}_mean_roc_{model_name}.png"),
+                                    f"{table_name} - {model_name}"
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Failed to plot mean ROC across splits for {model_name}: {e}")
+
+                            try:
+                                self.plotter.plot_mean_roc_per_subgroup(
+                                    predictions,
+                                    all_test_dfs,
+                                    subgroup_col="healthAssesment_age",
+                                    group_labels=["18-29", "30-49", "50-69", "70+"],
+                                    out_path=os.path.join(table_dir, f"{table_name}_mean_roc_age_{model_name}.png"),
+                                    title=f"{table_name} - Mean ROC per Age - {model_name}"
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Failed to plot mean ROC per age for {model_name}: {e}")
+                            
+                            try:
+                                self.plotter.plot_mean_roc_per_subgroup(
+                                    predictions,
+                                    all_test_dfs,
+                                    subgroup_col="days_to_next_bmi",
+                                    group_labels=["0-30", "30-180", "180-360", "360+"],
+                                    out_path=os.path.join(table_dir, f"{table_name}_mean_roc_days_to_next_bmi_{model_name}.png"),
+                                    title=f"{table_name} - Mean ROC per Days to Next BMI - {model_name}"
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Failed to plot mean ROC per days to next BMI for {model_name}: {e}")
+                            
+                            try:
+                                self.plotter.plot_mean_roc_per_subgroup(
+                                    predictions,
+                                    all_test_dfs,
+                                    subgroup_col="BodyMassIndex_recalc",
+                                    group_labels=["Underweight", "Normal", "Overweight", "Obese"],
+                                    out_path=os.path.join(table_dir, f"{table_name}_mean_roc_baseline_bmi_{model_name}.png"),
+                                    title=f"{table_name} - Mean ROC per Baseline BMI - {model_name}"
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Failed to plot mean ROC per baseline BMI for {model_name}: {e}")
+                            
+                            try:
+                                sex_labels = sorted({
+                                    value
+                                    for df_split in all_test_dfs if "Sex" in df_split
+                                    for value in df_split["Sex"].dropna().unique()
+                                })
+                                if sex_labels:
+                                    self.plotter.plot_mean_roc_per_subgroup(
+                                        predictions,
+                                        all_test_dfs,
+                                        subgroup_col="Sex",
+                                        group_labels=sex_labels,
+                                        out_path=os.path.join(table_dir, f"{table_name}_mean_roc_sex_{model_name}.png"),
+                                        title=f"{table_name} - Mean ROC per Sex - {model_name}"
+                                    )
+                            except Exception as e:
+                                self.logger.error(f"Failed to plot mean ROC per sex for {model_name}: {e}")
+
+                    try:
+                        self.plotter.plot_mean_roc_across_models(
+                            all_predictions,
+                            out_path=os.path.join(table_dir, f"{table_name}_mean_roc_all_models.png"),
+                            title=f"{table_name} - Mean ROC Across Models"
+                        )
+                    except Exception as e:
+                        self.logger.error(f"Failed to plot mean ROC across models: {e}")
+
+                    for model_name, shap_arrays in all_shap_values.items():
+                        if not shap_arrays:
+                            continue
+                        try:
+                            self.plotter.plot_shap_importance_across_splits(
+                                shap_arrays,
+                                all_pretty_feature_names,
+                                all_X_test,
+                                self.config.get('column_mapping', {}),
+                                os.path.join(table_dir, f"{table_name}_shap_importance_{model_name}_across_splits.png"),
+                                model_name,
+                                table_dir,
+                                table_name,
+                            max_display=self.config.get('visualization', {}).get('max_display_features', 15)
+                        )
+                        except Exception as e:
+                            self.logger.error(f"Failed to plot SHAP importance for {model_name}: {e}")
                     
                     self.logger.info(f"✓ Completed {table_name} → {table_dir}")
                 else:

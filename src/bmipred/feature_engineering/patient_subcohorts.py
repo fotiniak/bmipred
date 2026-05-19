@@ -2,7 +2,6 @@
 # src/bmipred/feature_engineering/patient_subcohorts.py
 
 import pandas as pd
-import numpy as np
 
 
 def create_patient_subcohorts(
